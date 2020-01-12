@@ -127,3 +127,6 @@ AUTHENTICATION_BACKENDS = (
     'django.contrib.auth.backends.ModelBackend',
     'account.backends.OTPModelBackEnd',
 )
+
+# otp validity time
+OTP_VALIDITY = 10
