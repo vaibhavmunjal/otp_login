@@ -10,6 +10,8 @@ from .models import OTPUser
 from .forms import OTPForm
 
 
+from django.contrib.auth import get_user_model
+
 class OTPView(FormView):
     """
     OTP Login Form View
@@ -62,3 +64,27 @@ class Logout(RedirectView):
     def get(self, request, *args, **kwargs):
         logout(request)
         return super(self.__class__, self).get(request, *args, **kwargs)
+
+
+
+# DRF VIEW For API Call
+# These import should be on top
+# Just to separately identify them they are here
+
+from rest_framework.views import APIView
+from rest_framework import status
+from rest_framework.response import Response
+
+class GetUserAPI(APIView):
+
+    def post(self, request, *args, **kwargs):
+        otp = None
+        username = request.POST.get('username')
+        user = get_user_model().objects.filter(username=username).first()
+        if user:
+            otp = user.otp.get_otp()
+            print('================')
+            print(otp)
+            print('================')
+            return Response({"otp": otp},status=status.HTTP_200_OK)
+        return Response({"otp": 'No user found'},status=status.HTTP_400_BAD_REQUEST)
