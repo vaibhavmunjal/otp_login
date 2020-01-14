@@ -12,5 +12,37 @@
         {{form.as_p}}
         <button>Login</button>
     </form>
+
+
+    <script
+    src="https://code.jquery.com/jquery-3.4.1.js"
+    integrity="sha256-WpOohJOqMqqyKL9FccASB9O0KwACQJpFTUBLTYOVvVU="
+    crossorigin="anonymous"></script>
+    <script>
+
+        $(function() {
+            $('#id_username').on('focusout', function() {
+                const userName = $(this).val();
+                if (userName.length > 2) {
+                    $.ajax({
+                        url: "{% url 'account:getuser' %}",
+                        type: 'POST',
+                        dataType: 'JSON',
+                        data: {
+                            username: userName
+                        },
+                        success: (data) =>{
+                            alert(`OTP: ${data.otp}`)
+                        },
+                        error: (err) => {
+                            errData = JSON.parse(err.responseText)
+                            alert(errData.otp);
+                        }
+                    });
+                }
+            })
+        })
+
+    </script>
 </body>
 </html>
