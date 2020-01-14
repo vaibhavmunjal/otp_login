@@ -1,7 +1,11 @@
 from django.db import models
 from django.utils import timezone
+from django.conf import settings
+from django.dispatch import receiver
 from django.contrib.auth import get_user_model
+from django.db.models.signals import post_save
 from django.utils.translation import gettext_lazy as _
+
 
 User = get_user_model()
 
@@ -23,11 +27,13 @@ class OTPUser(models.Model):
     otp_last_generated = models.DateTimeField(auto_now=True)
 
 
-    @property
+    def __str__(self):
+        return self.user.username
+
+
     def generate_otp(self):
         return User.objects.make_random_password(length=6, allowed_chars='0123456789')
 
-    @property
     def get_otp(self):
         if (not self.otp or
             timezone.now() > self.otp_last_generated + timezone.timedelta(minutes=settings.OTP_VALIDITY)):
@@ -35,11 +41,16 @@ class OTPUser(models.Model):
             self.save()
         return self.otp
 
-    @property
     def validate_otp(self, otp):
-        if (self.otp and
-            timezone.now < self.otp_last_generated + timezone.timedelta(minutes=settings.OTP_VALIDITY)):
+        if (otp == self.otp and
+            timezone.now() < self.otp_last_generated + timezone.timedelta(minutes=settings.OTP_VALIDITY)):
             self.otp = None
             self.save()
             return True
         return False
+
+
+@receiver(post_save, sender=User)
+def _post_otp_save(sender, instance, created, **kwargs):
+    if created:
+        OTPUser.objects.create(user=instance)

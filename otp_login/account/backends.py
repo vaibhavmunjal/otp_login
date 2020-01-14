@@ -10,13 +10,14 @@ class OTPModelBackEnd(BaseBackend):
     OTP Based Login For Users
     """
 
-    def authenticate(self, username, otp):
+    def authenticate(self, request, username, otp):
         try:
             user = User.objects.select_related('otp').get(username=username)
         except User.DoesNotExist:
             return None
         else:
-            if hasattr(user, 'otp'):
+            if (hasattr(user, 'otp') and
+                user.otp.validate_otp(otp=otp)):
                 return user
 
         return None
